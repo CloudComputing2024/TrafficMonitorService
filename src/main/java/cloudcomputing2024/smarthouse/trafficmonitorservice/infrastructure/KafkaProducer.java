@@ -12,6 +12,6 @@ public class KafkaProducer {
     private KafkaTemplate<String, ServiceTopicDefinition> kafkaTemplate;
 
     public void send(ServiceTopicDefinition message) {
-        kafkaTemplate.send("ServiceDefinitionTopic", message.getServiceName(), message);
+        kafkaTemplate.send("ServiceDefinitionTopic", message.serviceName(), message);
     }
 }

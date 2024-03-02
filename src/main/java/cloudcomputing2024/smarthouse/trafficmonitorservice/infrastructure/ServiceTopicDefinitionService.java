@@ -10,7 +10,7 @@ import java.util.List;
 
 @Service
 public class ServiceTopicDefinitionService  {
-    private ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
+    private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
 
     public ServiceTopicDefinitionService(ServiceTopicDefinitionRepository serviceTopicDefinitionRepository) {
         this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
@@ -30,7 +30,7 @@ public class ServiceTopicDefinitionService  {
     }
 
     @Cacheable(cacheNames = "topicDefinitions", key = "#serviceName")
-    List<ServiceTopicDefinition> GetAllTopicDefinitionForService(String serviceName){
+    public List<ServiceTopicDefinition> GetAllTopicDefinitionForService(String serviceName){
         return serviceTopicDefinitionRepository.findByServiceName(serviceName);
     }
 }
