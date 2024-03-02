@@ -3,8 +3,8 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.schedulers;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicDefinitionRepository;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicMessageCounterService;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.messages.ServiceTopicDefinition;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.alerts.TrafficExceededAlert;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.alerts.TrafficExceededCause;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.notifications.IServiceTrafficNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,55 +12,44 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TrafficMonitorScheduler {
-    private static final int TrafficMonitorInterval = 60000; // 1 Minute
-    private final Logger logger;
-    private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
+    private static final int TrafficMonitorIntervalMilliseconds = 60000; // 1 Minute
+    private final Logger logger = LoggerFactory.getLogger(TrafficMonitorScheduler.class);
     private final ServiceTopicMessageCounterService serviceTopicMessageCounterService;
+    private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
 
-    public TrafficMonitorScheduler(ServiceTopicDefinitionRepository serviceTopicDefinitionRepository, ServiceTopicMessageCounterService serviceTopicMessageCounterService) {
-        this.logger = LoggerFactory.getLogger(TrafficMonitorScheduler.class);
-        this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
+    private final IServiceTrafficNotificationService notificationService;
+
+    public TrafficMonitorScheduler(ServiceTopicMessageCounterService serviceTopicMessageCounterService, ServiceTopicDefinitionRepository serviceTopicDefinitionRepository, IServiceTrafficNotificationService notificationService) {
         this.serviceTopicMessageCounterService = serviceTopicMessageCounterService;
+        this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
+        this.notificationService = notificationService;
     }
 
-    @Scheduled(fixedRate = TrafficMonitorInterval)
+    @Scheduled(fixedRate = TrafficMonitorIntervalMilliseconds)
     public void monitorTraffic() {
-        logger.info("Monitoring Traffic");
+        logger.info("Monitoring service messages traffic");
         var serviceDefinitions = serviceTopicDefinitionRepository.findAll();
 
         for (var service : serviceDefinitions) {
             MonitorServiceTraffic(service);
         }
 
-        logger.info("Resetting Service Counters");
+        logger.info("Resetting service message counters");
         serviceTopicMessageCounterService.resetCounters();
     }
 
-    private void MonitorServiceTraffic(ServiceTopicDefinition service) {
+    private void MonitorServiceTraffic(ServiceTopicDefinition definition) {
         try {
-            if (isServiceTrafficExceeded(service)) {
-                logger.warn("Service Traffic Exceeded: " + service.serviceName());
-                alertTrafficExceeded(service);
+            if (isServiceTrafficExceeded(definition)) {
+                notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count);
             }
         } catch (Exception e) {
-            logger.error("Error Monitoring Service Traffic: " + service.serviceName(), e);
+            logger.error("Failed to monitor traffic for topic '" + definition.topic() + "' in service '" + definition.serviceName() + "'", e);
         }
     }
 
-    private boolean isServiceTrafficExceeded(ServiceTopicDefinition service) {
-        var counter = serviceTopicMessageCounterService.getCounter(service.serviceName(), service.topic());
-        return counter > service.maxRequestsPerMinute();
-    }
-
-    private static void alertTrafficExceeded(ServiceTopicDefinition serviceDefinition) {
-        for (var alert : serviceDefinition.alertDefinitions()) {
-            var notification = alert.notificationType().getStrategy();
-            var message = getTrafficExceededMessage(serviceDefinition);
-            notification.Notify(alert, message);
-        }
-    }
-
-    private static TrafficExceededAlert getTrafficExceededMessage(ServiceTopicDefinition service) {
-        return new TrafficExceededAlert(service.serviceName(), service.topic(), TrafficExceededCause.Count);
+    private boolean isServiceTrafficExceeded(ServiceTopicDefinition definition) {
+        var counter = serviceTopicMessageCounterService.getCounter(definition.serviceName(), definition.topic());
+        return counter > definition.maxRequestsPerMinute();
     }
 }

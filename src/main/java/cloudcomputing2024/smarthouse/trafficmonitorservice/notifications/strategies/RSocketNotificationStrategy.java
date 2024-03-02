@@ -2,11 +2,12 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.notifications.strate
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.messages.AlertDefinition;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.alerts.TrafficExceededAlert;
+import org.springframework.stereotype.Service;
 
+@Service
 public class RSocketNotificationStrategy implements NotificationStrategy {
     @Override
     public void Notify(AlertDefinition alertDefinition, TrafficExceededAlert alert) {
-        System.out.printf("RSocketNotificationStrategy: Notify to %s by %s because of %s exceeded.\n",
-                alertDefinition.notificationType().name(), alert.cause());
+        throw new UnsupportedOperationException("RSocketNotificationStrategy is not implemented yet");
     }
 }
