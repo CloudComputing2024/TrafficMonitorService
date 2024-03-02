@@ -22,12 +22,7 @@ public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessa
     @Override
     public Long getCounter(String service, String topic) {
         var counterValue = this.cache.opsForValue().get(getCounterKey(service, topic));
-
-        try {
-            return counterValue != null ? Long.parseLong(counterValue) : 0;
-        } catch (NumberFormatException e) {
-            return 0L;
-        }
+        return counterValue != null ? Long.parseLong(counterValue) : 0;
     }
 
     @Override
