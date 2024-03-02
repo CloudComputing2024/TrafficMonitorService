@@ -1,8 +1,8 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.messages;
 
-import cloudcomputing2024.smarthouse.trafficmonitorservice.enums.AlertType;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.notificationService.NotificationType;
 
-import java.util.Dictionary;
+import java.util.Map;
 
-public record AlertDefinition(AlertType type, String id, Dictionary<String, String> parameters) {
+public record AlertDefinition(String id,String serviceName,NotificationType notificationType, Map<String, String> parameters) {
 }
