@@ -13,6 +13,6 @@ public class KafkaInit implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        kafkaConsumerService.addTopic("SprintTopic");
+        kafkaConsumerService.subscribeToTopic("SprintTopic");
     }
 }

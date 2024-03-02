@@ -20,7 +20,7 @@ public class KafkaConsumerService {
     private ConcurrentKafkaListenerContainerFactory<String, String> factory;
     private List<ConcurrentMessageListenerContainer<String, String>> containers = new ArrayList<>();
 
-    public void addTopic(String topic) {
+    public void subscribeToTopic(String topic) {
         ConcurrentMessageListenerContainer<String, String> container = factory.createContainer(topic);
         container.setupMessageListener((MessageListener<String, String>) record -> {
             System.out.println("Received Message: " + record.value() + " from topic: " + record.topic());
@@ -28,4 +28,7 @@ public class KafkaConsumerService {
         container.start();
         containers.add(container);
     }
+
+
+    public void publishToTopic(String topic,Object message){};
 }
