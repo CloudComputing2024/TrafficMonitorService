@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TrafficMonitorScheduler {
+    private static final int TrafficMonitorInterval = 60000; // 1 Minute
     private final Logger logger;
     private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
     private final ServiceTopicMessageCounterService serviceTopicMessageCounterService;
@@ -22,22 +23,28 @@ public class TrafficMonitorScheduler {
         this.serviceTopicMessageCounterService = serviceTopicMessageCounterService;
     }
 
-    @Scheduled(fixedRate = 60000) // Runs Every Minute
+    @Scheduled(fixedRate = TrafficMonitorInterval)
     public void monitorTraffic() {
         logger.info("Monitoring Traffic");
         var serviceDefinitions = serviceTopicDefinitionRepository.findAll();
 
         for (var service : serviceDefinitions) {
-            if (!isServiceTrafficExceeded(service)) {
-                continue;
-            }
-
-            logger.warn("Service Traffic Exceeded: " + service.serviceName());
-            alertTrafficExceeded(service);
+            MonitorServiceTraffic(service);
         }
 
         logger.info("Resetting Service Counters");
         serviceTopicMessageCounterService.resetCounters();
+    }
+
+    private void MonitorServiceTraffic(ServiceTopicDefinition service) {
+        try {
+            if (isServiceTrafficExceeded(service)) {
+                logger.warn("Service Traffic Exceeded: " + service.serviceName());
+                alertTrafficExceeded(service);
+            }
+        } catch (Exception e) {
+            logger.error("Error Monitoring Service Traffic: " + service.serviceName(), e);
+        }
     }
 
     private boolean isServiceTrafficExceeded(ServiceTopicDefinition service) {
@@ -45,7 +52,7 @@ public class TrafficMonitorScheduler {
         return counter > service.maxRequestsPerMinute();
     }
 
-    private void alertTrafficExceeded(ServiceTopicDefinition serviceDefinition) {
+    private static void alertTrafficExceeded(ServiceTopicDefinition serviceDefinition) {
         for (var alert : serviceDefinition.alertDefinitions()) {
             var notification = alert.notificationType().getStrategy();
             var message = getTrafficExceededMessage(serviceDefinition);
@@ -53,7 +60,7 @@ public class TrafficMonitorScheduler {
         }
     }
 
-    private TrafficExceededAlert getTrafficExceededMessage(ServiceTopicDefinition service) {
+    private static TrafficExceededAlert getTrafficExceededMessage(ServiceTopicDefinition service) {
         return new TrafficExceededAlert(service.serviceName(), service.topic(), TrafficExceededCause.Count);
     }
 }
