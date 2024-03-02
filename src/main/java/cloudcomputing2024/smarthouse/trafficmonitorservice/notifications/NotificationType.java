@@ -4,15 +4,10 @@ import cloudcomputing2024.smarthouse.trafficmonitorservice.notifications.strateg
 
 public enum NotificationType {
 
-    EMAIL {
+    RSocket {
         @Override
         public NotificationStrategy getStrategy() {
-            return new EmailNotificationStrategy();
-        }
-    }, SMS {
-        @Override
-        public NotificationStrategy getStrategy() {
-            return new SmsNotificationStrategy();
+            return new RSocketNotificationStrategy();
         }
     }, KAFKA_TOPIC {
         @Override
