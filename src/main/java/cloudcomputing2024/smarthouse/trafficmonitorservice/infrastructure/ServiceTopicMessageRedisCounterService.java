@@ -5,6 +5,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessageCounterService {
+    private static final String CounterKeyPrefix = "counter:";
+    private static final String CounterKeysPattern = CounterKeyPrefix + "*";
+    private static final String CounterKeyFormat = CounterKeyPrefix + "%s:%s";
+
     private final RedisTemplate<String, String> cache;
 
     public ServiceTopicMessageRedisCounterService(RedisTemplate<String, String> cache) {
@@ -18,18 +22,12 @@ public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessa
     @Override
     public Long getCounter(String service, String topic) {
         var counterValue = this.cache.opsForValue().get(getCounterKey(service, topic));
-
-        try {
-            return counterValue != null ? Long.parseLong(counterValue) : 0;
-        } catch (NumberFormatException e) {
-            return 0L;
-        }
+        return counterValue != null ? Long.parseLong(counterValue) : 0;
     }
 
     @Override
     public void resetCounters() {
-        var keys = this.cache.keys("counter:*");
-
+        var keys = this.cache.keys(CounterKeysPattern);
 
         if (keys != null) {
             this.cache.delete(keys);
@@ -37,6 +35,6 @@ public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessa
     }
 
     private static String getCounterKey(String serviceName, String topicName) {
-        return "counter:" + serviceName + ":" + topicName;
+        return String.format(CounterKeyFormat, serviceName, topicName);
     }
 }
