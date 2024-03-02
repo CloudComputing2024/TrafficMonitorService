@@ -1,13 +1,13 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure;
 
-import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessageCounterService {
-    private final RedisOperations<String, Long> cache;
+    private final RedisTemplate<String, String> cache;
 
-    public ServiceTopicMessageRedisCounterService(RedisOperations<String, Long> cache) {
+    public ServiceTopicMessageRedisCounterService(RedisTemplate<String, String> cache) {
         this.cache = cache;
     }
 
@@ -18,7 +18,12 @@ public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessa
     @Override
     public Long getCounter(String service, String topic) {
         var counterValue = this.cache.opsForValue().get(getCounterKey(service, topic));
-        return counterValue != null && counterValue > 0 ? counterValue : 0;
+
+        try {
+            return counterValue != null ? Long.parseLong(counterValue) : 0;
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
     }
 
     @Override
