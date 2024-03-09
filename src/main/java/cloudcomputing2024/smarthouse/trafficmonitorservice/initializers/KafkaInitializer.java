@@ -15,7 +15,7 @@ public class KafkaInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        var definition = new ServiceTopicDefinition("Service", "SprintService", 1000, 1000, null);
+//        var definition = new ServiceTopicDefinition("Service", "SprintService", 1000, 1000, null);
         //serviceTopicDefinitionSubscriber.subscribe(definition);
     }
 }
