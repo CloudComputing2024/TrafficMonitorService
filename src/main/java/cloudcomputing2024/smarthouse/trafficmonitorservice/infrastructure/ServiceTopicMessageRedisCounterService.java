@@ -13,7 +13,7 @@ public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessa
 
     private static final String CounterKeyPrefix = "counter:";
     private static final String CounterKeysPattern = CounterKeyPrefix + "*";
-    private static final String CounterKeyFormat = CounterKeyPrefix + "%s:%s";
+    private static final String CounterKeyFormat = CounterKeyPrefix + "%s";
 
     private final ReactiveStringRedisTemplate cache;
 
@@ -21,27 +21,34 @@ public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessa
         this.cache = cache;
     }
 
-    public Mono<Long> incrementCounter(String key, String topic) {
-        return cache.opsForValue().increment(getCounterKey(key, topic));
+    public Mono<Long> incrementCounter(String serviceName) {
+        logger.info("Incrementing counter for service '{}'", serviceName);
+
+        return cache
+                .opsForValue()
+                .increment(getCounterKey(serviceName));
     }
 
     @Override
-    public Mono<Long> getCounter(String service, String topic) {
-        logger.info("Getting counter for service '{}' and topic '{}'", service, topic);
+    public Mono<Long> getCounter(String serviceName) {
+        logger.info("Getting counter for service '{}'", serviceName);
 
         return this.cache
                 .opsForValue()
-                .get(getCounterKey(service, topic))
+                .get(getCounterKey(serviceName))
                 .map(counter -> counter != null ? Long.parseLong(counter) : 0);
     }
 
     @Override
     public Flux<Long> resetCounters() {
         logger.info("Resetting all counters");
-        return this.cache.keys(CounterKeysPattern).flatMap(this.cache::delete);
+
+        return this.cache
+                .keys(CounterKeysPattern)
+                .flatMap(this.cache::delete);
     }
 
-    private static String getCounterKey(String serviceName, String topicName) {
-        return String.format(CounterKeyFormat, serviceName, topicName);
+    private static String getCounterKey(String serviceName) {
+        return String.format(CounterKeyFormat, serviceName);
     }
 }

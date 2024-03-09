@@ -8,5 +8,5 @@ import java.util.List;
 
 @Document
 public record ServiceTopicDefinitionEntity(@Id String serviceName, int maxRequestsPerMinute, int maxRequestSizeIntBytes,
-                                           @Nullable List<AlertDefinitionEntity> alertDefinitionBoundaries) {
+                                           @Nullable List<AlertDefinitionEntity> alertDefinitions) {
 }
