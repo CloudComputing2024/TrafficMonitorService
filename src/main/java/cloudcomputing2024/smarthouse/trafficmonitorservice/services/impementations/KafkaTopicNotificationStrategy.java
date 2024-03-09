@@ -1,5 +1,6 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementations;
 
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.AlertDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.AlertDefinitionBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededAlert;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.NotificationStrategy;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class KafkaTopicNotificationStrategy implements NotificationStrategy {
@@ -22,13 +24,17 @@ public class KafkaTopicNotificationStrategy implements NotificationStrategy {
     }
 
     @Override
-    public void Notify(AlertDefinitionBoundary alertDefinitionBoundary, TrafficExceededAlert alert) {
-        var topic = alertDefinitionBoundary.parameters().get(TopicParameter);
+    public Mono<Void> Notify(AlertDefinitionEntity alertDefinition, TrafficExceededAlert alert) {
+        var topic = alertDefinition.parameters().get(TopicParameter);
 
         if (topic == null) {
             throw new IllegalArgumentException("Topic parameter is missing");
         }
-        
+
+        return Mono.fromRunnable(() -> NotifyInternal(topic, alert));
+    }
+
+    private void NotifyInternal(String topic, TrafficExceededAlert alert) {
         try {
             var message = objectMapper.writeValueAsString(alert);
             publisher.send(topic, message);

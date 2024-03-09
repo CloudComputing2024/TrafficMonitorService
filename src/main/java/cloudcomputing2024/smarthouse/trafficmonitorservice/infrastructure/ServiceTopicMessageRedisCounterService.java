@@ -1,37 +1,44 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessageCounterService {
+    private final Logger logger = LoggerFactory.getLogger(ServiceTopicMessageRedisCounterService.class);
+
     private static final String CounterKeyPrefix = "counter:";
     private static final String CounterKeysPattern = CounterKeyPrefix + "*";
     private static final String CounterKeyFormat = CounterKeyPrefix + "%s:%s";
 
-    private final RedisTemplate<String, String> cache;
+    private final ReactiveStringRedisTemplate cache;
 
-    public ServiceTopicMessageRedisCounterService(RedisTemplate<String, String> cache) {
+    public ServiceTopicMessageRedisCounterService(ReactiveStringRedisTemplate cache) {
         this.cache = cache;
     }
 
-    public Long incrementCounter(String key, String topic) {
+    public Mono<Long> incrementCounter(String key, String topic) {
         return cache.opsForValue().increment(getCounterKey(key, topic));
     }
 
     @Override
-    public Long getCounter(String service, String topic) {
-        var counterValue = this.cache.opsForValue().get(getCounterKey(service, topic));
-        return counterValue != null ? Long.parseLong(counterValue) : 0;
+    public Mono<Long> getCounter(String service, String topic) {
+        logger.info("Getting counter for service '{}' and topic '{}'", service, topic);
+
+        return this.cache
+                .opsForValue()
+                .get(getCounterKey(service, topic))
+                .map(counter -> counter != null ? Long.parseLong(counter) : 0);
     }
 
     @Override
-    public void resetCounters() {
-        var keys = this.cache.keys(CounterKeysPattern);
-
-        if (keys != null) {
-            this.cache.delete(keys);
-        }
+    public Flux<Long> resetCounters() {
+        logger.info("Resetting all counters");
+        return this.cache.keys(CounterKeysPattern).flatMap(this.cache::delete);
     }
 
     private static String getCounterKey(String serviceName, String topicName) {

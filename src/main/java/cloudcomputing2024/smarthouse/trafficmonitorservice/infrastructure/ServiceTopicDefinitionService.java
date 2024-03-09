@@ -1,36 +1,33 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure;
 
-import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.ServiceTopicDefinitionBoundary;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
-public class ServiceTopicDefinitionService  {
+public class ServiceTopicDefinitionService {
     private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
 
     public ServiceTopicDefinitionService(ServiceTopicDefinitionRepository serviceTopicDefinitionRepository) {
         this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
     }
-    @CachePut(value = "topicDefinitions", key = "#serviceTopicDefinition.serviceName" + ":" +"serviceTopicDefinition.topic")
-    public ServiceTopicDefinitionBoundary AddServiceTopicDefinition(ServiceTopicDefinitionBoundary serviceTopicDefinitionBoundary){
-        return serviceTopicDefinitionRepository.save(serviceTopicDefinitionBoundary);
+
+    @CachePut(value = "topicDefinitions", key = "#serviceName")
+    public Mono<ServiceTopicDefinitionEntity> AddServiceTopicDefinition(ServiceTopicDefinitionEntity serviceTopicDefinition) {
+        return serviceTopicDefinitionRepository.save(serviceTopicDefinition);
     }
 
-    @CacheEvict(cacheNames = "topicDefinitions", key = "#serviceTopicDefinition.serviceName" + ":" +"serviceTopicDefinition.topic" )
-    public void DeleteServiceTopicDefinition(ServiceTopicDefinitionBoundary serviceTopicDefinitionBoundary){
-        serviceTopicDefinitionRepository.delete(serviceTopicDefinitionBoundary);
-    }
-    @CacheEvict(cacheNames = "topicDefinitions", key = "#serviceTopicDefinition.serviceName" + ":" +"serviceTopicDefinition.topic" )
-    public void DeleteServiceTopicDefinitionByServiceNameAndTopic(ServiceTopicDefinitionBoundary serviceTopicDefinitionBoundary){
-        serviceTopicDefinitionRepository.deleteByServiceNameAndTopic(serviceTopicDefinitionBoundary);
+    @CacheEvict(cacheNames = "topicDefinitions", key = "#serviceName")
+    public Mono<Void> DeleteServiceTopicDefinition(ServiceTopicDefinitionEntity serviceTopicDefinition) {
+        return serviceTopicDefinitionRepository.delete(serviceTopicDefinition);
     }
 
     @Cacheable(cacheNames = "topicDefinitions", key = "#serviceName")
-    public List<ServiceTopicDefinitionBoundary> GetAllTopicDefinitionForService(String serviceName){
+    public Flux<ServiceTopicDefinitionEntity> GetAllTopicDefinitionForService(String serviceName) {
         return serviceTopicDefinitionRepository.findByServiceName(serviceName);
     }
 }

@@ -3,12 +3,12 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementati
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicDefinitionRepository;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicMessageCounterService;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.ServiceTopicDefinitionBoundary;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededCause;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.IServiceTrafficNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class TrafficMonitorScheduler {
@@ -25,32 +25,23 @@ public class TrafficMonitorScheduler {
         this.notificationService = notificationService;
     }
 
-    @Scheduled(fixedRate = TrafficMonitorIntervalMilliseconds)
+    @Scheduled(fixedDelay = TrafficMonitorIntervalMilliseconds)
     public void monitorTraffic() {
         logger.info("Monitoring service messages traffic");
-        var serviceDefinitions = serviceTopicDefinitionRepository.findAll();
 
-        for (var service : serviceDefinitions) {
-            monitorServiceTraffic(service);
-        }
-
-        logger.info("Resetting service message counters");
-        serviceTopicMessageCounterService.resetCounters();
+//        serviceTopicDefinitionRepository
+//                .findAll()
+//                .filterWhen(this::isServiceTrafficExceeded)
+//                .map(definition -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count))
+//                .thenMany(serviceTopicMessageCounterService.resetCounters())
+//                .then()
+//                .block();
     }
 
-    private void monitorServiceTraffic(ServiceTopicDefinitionBoundary definition) {
-//        try {
-//            if (isServiceTrafficExceeded(definition)) {
-//                notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count);
-//            }
-//        } catch (Exception e) {
-//            logger.error("Failed to monitor traffic for topic '" + definition.topic() + "' in service '" + definition.serviceName() + "'", e);
-//        }
-    }
-
-    private boolean isServiceTrafficExceeded(ServiceTopicDefinitionBoundary definition) {
-//        var counter = serviceTopicMessageCounterService.getCounter(definition.serviceName(), definition.topic());
-        var counter = 1; //TODO fix this
-        return counter > definition.maxRequestsPerMinute();
+    private Mono<Boolean> isServiceTrafficExceeded(ServiceTopicDefinitionBoundary definition) {
+        return Mono.just(true);
+//        return serviceTopicMessageCounterService
+//                .getCounter(definition.serviceName(), definition.topic())
+//                .map(counter -> counter > definition.maxRequestsPerMinute());
     }
 }

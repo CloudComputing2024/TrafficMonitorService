@@ -1,16 +1,16 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure;
 
-import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.ServiceTopicDefinitionBoundary;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 //Make reactive
 @Repository
-public interface ServiceTopicDefinitionRepository extends MongoRepository<ServiceTopicDefinitionBoundary, String> {
-    List<ServiceTopicDefinitionBoundary> findByServiceName(String firstName);
+public interface ServiceTopicDefinitionRepository extends ReactiveMongoRepository<ServiceTopicDefinitionEntity, String> {
+    Flux<ServiceTopicDefinitionEntity> findByServiceName(String firstName);
 
-    void deleteByServiceNameAndTopic(ServiceTopicDefinitionBoundary serviceTopicDefinitionBoundary);
+    Mono<Void> deleteByServiceNameAndTopic(String serviceName, String topic);
 }
 
