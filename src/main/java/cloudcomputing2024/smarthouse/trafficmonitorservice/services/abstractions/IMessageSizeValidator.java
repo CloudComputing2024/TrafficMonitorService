@@ -5,3 +5,4 @@ import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundari
 public interface IMessageSizeValidator {
     boolean IsSizeValid(MessageBoundary messageBoundary) ;
 }
+
