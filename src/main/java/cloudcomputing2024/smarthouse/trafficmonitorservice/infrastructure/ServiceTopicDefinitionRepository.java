@@ -12,5 +12,6 @@ public interface ServiceTopicDefinitionRepository extends ReactiveMongoRepositor
     Flux<ServiceTopicDefinitionEntity> findByServiceName(String firstName);
 
     Mono<Void> deleteByServiceNameAndTopic(String serviceName, String topic);
+
 }
 

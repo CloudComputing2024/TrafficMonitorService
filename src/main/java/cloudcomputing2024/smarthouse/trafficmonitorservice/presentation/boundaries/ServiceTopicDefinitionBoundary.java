@@ -6,6 +6,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
-public record ServiceTopicDefinitionBoundary(int maxRequestsPerMinute, int maxRequestSizeIntBytes,
+public record ServiceTopicDefinitionBoundary(String serviceName, int maxRequestsPerMinute, int maxRequestSizeIntBytes,
                                              List<AlertDefinitionBoundary> alertDefinitionBoundaries) {
 }
