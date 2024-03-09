@@ -31,14 +31,14 @@ public class TrafficMonitorScheduler {
         var serviceDefinitions = serviceTopicDefinitionRepository.findAll();
 
         for (var service : serviceDefinitions) {
-            MonitorServiceTraffic(service);
+            monitorServiceTraffic(service);
         }
 
         logger.info("Resetting service message counters");
         serviceTopicMessageCounterService.resetCounters();
     }
 
-    private void MonitorServiceTraffic(ServiceTopicDefinition definition) {
+    private void monitorServiceTraffic(ServiceTopicDefinition definition) {
         try {
             if (isServiceTrafficExceeded(definition)) {
                 notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count);
