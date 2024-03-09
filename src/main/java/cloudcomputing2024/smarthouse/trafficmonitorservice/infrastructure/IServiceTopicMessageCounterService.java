@@ -3,7 +3,7 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface ServiceTopicMessageCounterService {
+public interface IServiceTopicMessageCounterService {
     Mono<Long> incrementCounter(String serviceName);
 
     Mono<Long> getCounter(String serviceName);

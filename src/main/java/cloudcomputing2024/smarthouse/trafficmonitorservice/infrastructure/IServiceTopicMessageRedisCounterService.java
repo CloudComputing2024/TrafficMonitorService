@@ -8,8 +8,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessageCounterService {
-    private final Logger logger = LoggerFactory.getLogger(ServiceTopicMessageRedisCounterService.class);
+public class IServiceTopicMessageRedisCounterService implements IServiceTopicMessageCounterService {
+    private final Logger logger = LoggerFactory.getLogger(IServiceTopicMessageRedisCounterService.class);
 
     private static final String CounterKeyPrefix = "counter:";
     private static final String CounterKeysPattern = CounterKeyPrefix + "*";
@@ -17,7 +17,7 @@ public class ServiceTopicMessageRedisCounterService implements ServiceTopicMessa
 
     private final ReactiveStringRedisTemplate cache;
 
-    public ServiceTopicMessageRedisCounterService(ReactiveStringRedisTemplate cache) {
+    public IServiceTopicMessageRedisCounterService(ReactiveStringRedisTemplate cache) {
         this.cache = cache;
     }
 

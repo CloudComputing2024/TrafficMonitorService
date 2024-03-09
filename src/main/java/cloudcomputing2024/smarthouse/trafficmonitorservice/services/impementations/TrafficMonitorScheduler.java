@@ -3,7 +3,7 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementati
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededCause;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicDefinitionRepository;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicMessageCounterService;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.IServiceTopicMessageCounterService;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.IServiceTrafficNotificationService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -16,13 +16,13 @@ import java.time.Duration;
 public class TrafficMonitorScheduler implements CommandLineRunner {
     private static final Duration TrafficMonitorInterval = Duration.ofMinutes(1);
 
-    private final ServiceTopicMessageCounterService serviceTopicMessageCounterService;
+    private final IServiceTopicMessageCounterService IServiceTopicMessageCounterService;
     private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
 
     private final IServiceTrafficNotificationService notificationService;
 
-    public TrafficMonitorScheduler(ServiceTopicMessageCounterService serviceTopicMessageCounterService, ServiceTopicDefinitionRepository serviceTopicDefinitionRepository, IServiceTrafficNotificationService notificationService) {
-        this.serviceTopicMessageCounterService = serviceTopicMessageCounterService;
+    public TrafficMonitorScheduler(IServiceTopicMessageCounterService IServiceTopicMessageCounterService, ServiceTopicDefinitionRepository serviceTopicDefinitionRepository, IServiceTrafficNotificationService notificationService) {
+        this.IServiceTopicMessageCounterService = IServiceTopicMessageCounterService;
         this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
         this.notificationService = notificationService;
     }
@@ -38,13 +38,13 @@ public class TrafficMonitorScheduler implements CommandLineRunner {
         return serviceTopicDefinitionRepository
                 .findAll()
                 .filterWhen(this::isServiceTrafficExceeded)
-                .flatMap(definition -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count))
-                .thenMany(serviceTopicMessageCounterService.resetCounters())
+                .flatMap(definition -> notificationService.sendTrafficExceededNotifications(definition.serviceName(), TrafficExceededCause.Count))
+                .thenMany(IServiceTopicMessageCounterService.resetCounters())
                 .then();
     }
 
     private Mono<Boolean> isServiceTrafficExceeded(ServiceTopicDefinitionEntity definition) {
-        return serviceTopicMessageCounterService
+        return IServiceTopicMessageCounterService
                 .getCounter(definition.serviceName())
                 .map(counter -> counter > definition.maxRequestsPerMinute());
     }
