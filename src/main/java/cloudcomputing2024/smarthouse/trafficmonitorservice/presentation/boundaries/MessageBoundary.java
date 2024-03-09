@@ -1,6 +1,8 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries;
 
 
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
+
 import java.util.Arrays;
 import java.util.Map;
 
@@ -13,6 +15,7 @@ public class MessageBoundary {
 	private Map<String, Object> messageDetails;
 
 	public MessageBoundary(){}
+
 	public String getMessageId() {
 		return messageId;
 	}
