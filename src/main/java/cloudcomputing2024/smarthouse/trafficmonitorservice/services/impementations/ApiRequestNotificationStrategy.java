@@ -8,21 +8,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import reactor.core.publisher.Mono;
 
 @Service
 public class ApiRequestNotificationStrategy implements NotificationStrategy {
     private final Logger logger = LoggerFactory.getLogger(ApiRequestNotificationStrategy.class);
     private final ObjectMapper objectMapper;
-    private final RestTemplate restTemplate;
+    //private final RestTemplate restTemplate;
 
-    public ApiRequestNotificationStrategy(ObjectMapper objectMapper, RestTemplate restTemplate) {
+    public ApiRequestNotificationStrategy(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.restTemplate = restTemplate;
+        //.restTemplate = restTemplate;
     }
 
     @Override

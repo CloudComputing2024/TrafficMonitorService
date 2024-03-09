@@ -22,7 +22,7 @@ public class RegistrationService implements IRegistrationService {
         this.registrationRepository = registrationRepository;
     }
 
-    @Override
+    //@Override
     public Mono<ServiceTopicDefinitionBoundary> registerService(MessageBoundary message) {
         if (message == null){
             return Mono.empty();
@@ -51,6 +51,11 @@ public class RegistrationService implements IRegistrationService {
     }
 
     @Override
+    public Mono<Void> RegisterService(String serviceName, List<AlertDefinitionBoundary> alertDefinitionBoundary) {
+        return null;
+    }
+
+    @Override
     public Flux<ServiceTopicDefinitionBoundary> getAllRegistrations(MessageBoundary message) {
         return this.registrationRepository
                 .findAll()
@@ -65,7 +70,7 @@ public class RegistrationService implements IRegistrationService {
 
     private ServiceTopicDefinitionBoundary mapToBoundary(ServiceTopicDefinitionEntity entity) {
         List<AlertDefinitionBoundary> alertDefinitionBoundaries = Collections.emptyList();
-        var alerts = entity.alertDefinitionBoundaries();
+        var alerts = entity.alertDefinitions();
         if (alerts != null){
             alertDefinitionBoundaries = alerts
                     .stream()

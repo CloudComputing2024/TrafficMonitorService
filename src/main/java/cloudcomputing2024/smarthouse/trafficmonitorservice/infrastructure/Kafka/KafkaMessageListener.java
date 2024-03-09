@@ -30,7 +30,7 @@ public class KafkaMessageListener {
     }
 
     @Bean
-    public Consumer<String> demoMessageSink(){
+    public Consumer<String> messageSink(){
         return stringInput->{
             try {
                 this.logger.trace("*** received: " + stringInput);

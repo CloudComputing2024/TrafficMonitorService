@@ -2,26 +2,27 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementati
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.NotificationType;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededCause;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.IRegistrationService;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.IServiceTopicMessageCounterService;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.AlertDefinitionBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.MessageBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.*;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class KafkaMessageHandlerWorkflow implements IKafkaMessageHandlerWorkflow {
-    private IServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer;
+    private ServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer;
     private IMonitoredMessagesFilterer monitoredMessagesFilterer;
     private IRegistrationService registrationService;
     private IMessageSizeValidator messageSizeValidator;
     private IServiceTrafficNotificationService notificationService;
     private IServiceTopicMessageCounterService messageCounterService;
 
-    public KafkaMessageHandlerWorkflow(IServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer,
+    public KafkaMessageHandlerWorkflow(ServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer,
                                        IMonitoredMessagesFilterer monitoredMessagesFilterer,
                                        IRegistrationService registrationService,
                                        IMessageSizeValidator messageSizeValidator,
