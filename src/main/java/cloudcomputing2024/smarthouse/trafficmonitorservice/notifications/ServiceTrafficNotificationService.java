@@ -7,6 +7,7 @@ import cloudcomputing2024.smarthouse.trafficmonitorservice.notifications.strateg
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 @Service
 public class ServiceTrafficNotificationService implements IServiceTrafficNotificationService {
@@ -18,17 +19,17 @@ public class ServiceTrafficNotificationService implements IServiceTrafficNotific
     }
 
     @Override
-    public void sendTrafficExceededNotifications(ServiceTopicDefinition definition, TrafficExceededCause cause) {
+    public Flux<Void> sendTrafficExceededNotifications(ServiceTopicDefinition definition, TrafficExceededCause cause) {
         logger.warn("Traffic exceeded for topic '{}' in service '{}' in message {}", definition.topic(), definition.serviceName(), cause.name().toLowerCase());
         var message = new TrafficExceededAlert(definition.serviceName(), definition.topic(), cause);
 
         if (definition.alertDefinitions() == null) {
-            return;
+            return Flux.empty();
         }
 
-        for (var alert : definition.alertDefinitions()) {
+        return Flux.fromIterable(definition.alertDefinitions()).flatMap(alert -> {
             var notification = notificationStrategyProvider.getStrategy(alert.notificationType());
-            notification.Notify(alert, message);
-        }
+            return notification.Notify(alert, message);
+        });
     }
 }

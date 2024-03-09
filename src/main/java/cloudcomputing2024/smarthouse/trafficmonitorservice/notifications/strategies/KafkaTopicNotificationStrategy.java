@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class KafkaTopicNotificationStrategy implements NotificationStrategy {
@@ -21,13 +22,17 @@ public class KafkaTopicNotificationStrategy implements NotificationStrategy {
     }
 
     @Override
-    public void Notify(AlertDefinition alertDefinition, TrafficExceededAlert alert) {
+    public Mono<Void> Notify(AlertDefinition alertDefinition, TrafficExceededAlert alert) {
         var topic = alertDefinition.parameters().get(TopicParameter);
 
         if (topic == null) {
             throw new IllegalArgumentException("Topic parameter is missing");
         }
-        
+
+        return Mono.fromRunnable(() -> NotifyInternal(topic, alert));
+    }
+
+    private void NotifyInternal(String topic, TrafficExceededAlert alert) {
         try {
             var message = objectMapper.writeValueAsString(alert);
             publisher.send(topic, message);

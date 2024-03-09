@@ -2,7 +2,8 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.notifications.strate
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.messages.AlertDefinition;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.alerts.TrafficExceededAlert;
+import reactor.core.publisher.Mono;
 
 public interface NotificationStrategy {
-    void Notify(AlertDefinition alertDefinition, TrafficExceededAlert alert);
+    Mono<Void> Notify(AlertDefinition alertDefinition, TrafficExceededAlert alert);
 }

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class TrafficMonitorScheduler {
@@ -25,31 +26,22 @@ public class TrafficMonitorScheduler {
         this.notificationService = notificationService;
     }
 
-    @Scheduled(fixedRate = TrafficMonitorIntervalMilliseconds)
+    @Scheduled(fixedDelay = TrafficMonitorIntervalMilliseconds)
     public void monitorTraffic() {
         logger.info("Monitoring service messages traffic");
-        var serviceDefinitions = serviceTopicDefinitionRepository.findAll();
 
-        for (var service : serviceDefinitions) {
-            MonitorServiceTraffic(service);
-        }
-
-        logger.info("Resetting service message counters");
-        serviceTopicMessageCounterService.resetCounters();
+        serviceTopicDefinitionRepository
+            .findAll()
+            .filterWhen(this::isServiceTrafficExceeded)
+            .map(definition -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count))
+            .thenMany(serviceTopicMessageCounterService.resetCounters())
+            .then()
+            .block();
     }
-
-    private void MonitorServiceTraffic(ServiceTopicDefinition definition) {
-        try {
-            if (isServiceTrafficExceeded(definition)) {
-                notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count);
-            }
-        } catch (Exception e) {
-            logger.error("Failed to monitor traffic for topic '" + definition.topic() + "' in service '" + definition.serviceName() + "'", e);
-        }
-    }
-
-    private boolean isServiceTrafficExceeded(ServiceTopicDefinition definition) {
-        var counter = serviceTopicMessageCounterService.getCounter(definition.serviceName(), definition.topic());
-        return counter > definition.maxRequestsPerMinute();
+    
+    private Mono<Boolean> isServiceTrafficExceeded(ServiceTopicDefinition definition) {
+        return serviceTopicMessageCounterService
+                .getCounter(definition.serviceName(), definition.topic())
+                .map(counter -> counter > definition.maxRequestsPerMinute());
     }
 }

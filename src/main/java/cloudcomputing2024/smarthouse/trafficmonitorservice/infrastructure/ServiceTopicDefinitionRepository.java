@@ -1,15 +1,15 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure;
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.messages.ServiceTopicDefinition;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface ServiceTopicDefinitionRepository extends MongoRepository<ServiceTopicDefinition, String> {
-    List<ServiceTopicDefinition> findByServiceName(String firstName);
+public interface ServiceTopicDefinitionRepository extends ReactiveMongoRepository<ServiceTopicDefinition, String> {
+    Flux<ServiceTopicDefinition> findByServiceName(String firstName);
 
-    void deleteByServiceNameAndTopic(ServiceTopicDefinition serviceTopicDefinition);
+    Mono<Void> deleteByServiceNameAndTopic(String serviceName, String topic);
 }
 

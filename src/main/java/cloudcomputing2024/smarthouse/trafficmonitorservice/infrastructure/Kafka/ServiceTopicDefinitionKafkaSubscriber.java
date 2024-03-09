@@ -11,6 +11,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,10 +51,11 @@ public class ServiceTopicDefinitionKafkaSubscriber implements ServiceTopicDefini
 
     private void HandleServiceTopicMessage(ServiceTopicDefinition definition, ConsumerRecord<String, String> record) {
         logger.info("Got message for topic '{}' in service '{}'", definition.topic(), definition.serviceName());
-        serviceTopicMessageCounterService.incrementCounter(definition.serviceName(), definition.topic());
-
-        if (record.serializedValueSize() > definition.maxRequestSizeIntBytes()) {
-            notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Size);
-        }
+        
+        Mono.just(definition)
+                .filter(d -> record.serializedValueSize() > definition.maxRequestSizeIntBytes())
+                .map(d -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Size))
+                .then(serviceTopicMessageCounterService.incrementCounter(definition.serviceName(), definition.topic()))
+                .block();
     }
 }
