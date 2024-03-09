@@ -1,6 +1,6 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure;
 
-import cloudcomputing2024.smarthouse.trafficmonitorservice.messages.ServiceTopicDefinition;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.ServiceTopicDefinitionBoundary;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,21 +16,21 @@ public class ServiceTopicDefinitionService  {
         this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
     }
     @CachePut(value = "topicDefinitions", key = "#serviceTopicDefinition.serviceName" + ":" +"serviceTopicDefinition.topic")
-    public ServiceTopicDefinition AddServiceTopicDefinition(ServiceTopicDefinition serviceTopicDefinition){
-        return serviceTopicDefinitionRepository.save(serviceTopicDefinition);
+    public ServiceTopicDefinitionBoundary AddServiceTopicDefinition(ServiceTopicDefinitionBoundary serviceTopicDefinitionBoundary){
+        return serviceTopicDefinitionRepository.save(serviceTopicDefinitionBoundary);
     }
 
     @CacheEvict(cacheNames = "topicDefinitions", key = "#serviceTopicDefinition.serviceName" + ":" +"serviceTopicDefinition.topic" )
-    public void DeleteServiceTopicDefinition(ServiceTopicDefinition serviceTopicDefinition){
-        serviceTopicDefinitionRepository.delete(serviceTopicDefinition);
+    public void DeleteServiceTopicDefinition(ServiceTopicDefinitionBoundary serviceTopicDefinitionBoundary){
+        serviceTopicDefinitionRepository.delete(serviceTopicDefinitionBoundary);
     }
     @CacheEvict(cacheNames = "topicDefinitions", key = "#serviceTopicDefinition.serviceName" + ":" +"serviceTopicDefinition.topic" )
-    public void DeleteServiceTopicDefinitionByServiceNameAndTopic(ServiceTopicDefinition serviceTopicDefinition){
-        serviceTopicDefinitionRepository.deleteByServiceNameAndTopic(serviceTopicDefinition);
+    public void DeleteServiceTopicDefinitionByServiceNameAndTopic(ServiceTopicDefinitionBoundary serviceTopicDefinitionBoundary){
+        serviceTopicDefinitionRepository.deleteByServiceNameAndTopic(serviceTopicDefinitionBoundary);
     }
 
     @Cacheable(cacheNames = "topicDefinitions", key = "#serviceName")
-    public List<ServiceTopicDefinition> GetAllTopicDefinitionForService(String serviceName){
+    public List<ServiceTopicDefinitionBoundary> GetAllTopicDefinitionForService(String serviceName){
         return serviceTopicDefinitionRepository.findByServiceName(serviceName);
     }
 }
