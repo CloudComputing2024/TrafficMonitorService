@@ -5,7 +5,7 @@ import cloudcomputing2024.smarthouse.trafficmonitorservice.messages.ServiceTopic
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class KafkaInitializer implements CommandLineRunner {
     private final ServiceTopicDefinitionSubscriber serviceTopicDefinitionSubscriber;
 
@@ -15,7 +15,7 @@ public class KafkaInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        var definition = new ServiceTopicDefinition("Service", "SprintService", 1000, 1000, null);
+//        var definition = new ServiceTopicDefinition("Service", "SprintService", 1000, 1000, null);
         //serviceTopicDefinitionSubscriber.subscribe(definition);
     }
 }

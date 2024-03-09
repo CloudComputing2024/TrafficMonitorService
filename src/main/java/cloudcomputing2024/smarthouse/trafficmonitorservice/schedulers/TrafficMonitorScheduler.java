@@ -31,14 +31,14 @@ public class TrafficMonitorScheduler {
         logger.info("Monitoring service messages traffic");
 
         serviceTopicDefinitionRepository
-            .findAll()
-            .filterWhen(this::isServiceTrafficExceeded)
-            .map(definition -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count))
-            .thenMany(serviceTopicMessageCounterService.resetCounters())
-            .then()
-            .block();
+                .findAll()
+                .filterWhen(this::isServiceTrafficExceeded)
+                .map(definition -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count))
+                .thenMany(serviceTopicMessageCounterService.resetCounters())
+                .then()
+                .block();
     }
-    
+
     private Mono<Boolean> isServiceTrafficExceeded(ServiceTopicDefinition definition) {
         return serviceTopicMessageCounterService
                 .getCounter(definition.serviceName(), definition.topic())

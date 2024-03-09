@@ -22,8 +22,8 @@ public class KafkaTopicConfiguration {
         return new KafkaAdmin(properties);
     }
 
-    @Bean
-    public NewTopic serviceTopicDefinition() {
-        return new NewTopic("ServiceTopicDefinition", 1, (short) 1);
-    }
+//    @Bean
+//    public NewTopic serviceTopicDefinition() {
+//        return new NewTopic("ServiceTopicDefinition", 1, (short) 1);
+//    }
 }
