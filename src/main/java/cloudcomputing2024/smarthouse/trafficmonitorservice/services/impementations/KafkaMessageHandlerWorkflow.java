@@ -47,7 +47,7 @@ public class KafkaMessageHandlerWorkflow implements IKafkaMessageHandlerWorkflow
         if(serviceTopicDefinitionFilterer.IsMessageIsRegistrationMessage(messageBoundary)){
 
             List<AlertDefinitionBoundary> alertDefinitionBoundary = RetrieveAlertDefinitions(messageBoundary);
-            registrationService.RegisterService(serviceName,alertDefinitionBoundary);
+            registrationService.registerService(messageBoundary);
             return;
         };
 

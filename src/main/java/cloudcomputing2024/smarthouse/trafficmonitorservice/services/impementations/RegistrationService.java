@@ -22,7 +22,7 @@ public class RegistrationService implements IRegistrationService {
         this.registrationRepository = registrationRepository;
     }
 
-    //@Override
+    @Override
     public Mono<ServiceTopicDefinitionBoundary> registerService(MessageBoundary message) {
         if (message == null){
             return Mono.empty();
@@ -51,7 +51,7 @@ public class RegistrationService implements IRegistrationService {
     }
 
     @Override
-    public Mono<Void> RegisterService(String serviceName, List<AlertDefinitionBoundary> alertDefinitionBoundary) {
+    public Mono<Void> registerService(String serviceName, List<AlertDefinitionBoundary> alertDefinitionBoundary) {
         return null;
     }
 
