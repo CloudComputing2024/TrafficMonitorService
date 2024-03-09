@@ -30,7 +30,7 @@ public class TrafficMonitorScheduler implements CommandLineRunner {
     @Override
     public void run(String... args) {
         Flux.interval(TrafficMonitorInterval)
-                .flatMap(ignore -> monitorTraffic())
+                .flatMap(interval -> monitorTraffic())
                 .subscribe();
     }
 
@@ -38,7 +38,7 @@ public class TrafficMonitorScheduler implements CommandLineRunner {
         return serviceTopicDefinitionRepository
                 .findAll()
                 .filterWhen(this::isServiceTrafficExceeded)
-                .flatMap(definition -> notificationService.sendTrafficExceededNotifications(definition.serviceName(), TrafficExceededCause.Count))
+                .flatMap(definition -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count))
                 .thenMany(serviceTopicMessageCounterService.resetCounters())
                 .then();
     }

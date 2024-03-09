@@ -1,7 +1,6 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementations;
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.AlertDefinitionEntity;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.AlertDefinitionBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededAlert;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.NotificationStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
