@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+//Make reactive
 @Repository
 public interface ServiceTopicDefinitionRepository extends MongoRepository<ServiceTopicDefinition, String> {
     List<ServiceTopicDefinition> findByServiceName(String firstName);

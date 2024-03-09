@@ -5,7 +5,7 @@ import cloudcomputing2024.smarthouse.trafficmonitorservice.messages.ServiceTopic
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class KafkaInitializer implements CommandLineRunner {
     private final ServiceTopicDefinitionSubscriber serviceTopicDefinitionSubscriber;
 

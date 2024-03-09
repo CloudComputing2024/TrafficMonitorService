@@ -7,6 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.List;
 
 @Document
-public record ServiceTopicDefinition(@Id String serviceName, String topic, int maxRequestsPerMinute, int maxRequestSizeIntBytes,
+public record ServiceTopicDefinition(@Id String serviceName, int maxRequestsPerMinute, int maxRequestSizeIntBytes,
                                      @Nullable List<AlertDefinition> alertDefinitions) {
 }

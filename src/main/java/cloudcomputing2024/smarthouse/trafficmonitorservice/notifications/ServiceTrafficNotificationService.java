@@ -19,8 +19,8 @@ public class ServiceTrafficNotificationService implements IServiceTrafficNotific
 
     @Override
     public void sendTrafficExceededNotifications(ServiceTopicDefinition definition, TrafficExceededCause cause) {
-        logger.warn("Traffic exceeded for topic '{}' in service '{}' in message {}", definition.topic(), definition.serviceName(), cause.name().toLowerCase());
-        var message = new TrafficExceededAlert(definition.serviceName(), definition.topic(), cause);
+        logger.warn("Traffic exceeded for topic '{}' in service '{}' in message {}", definition.serviceName(), cause.name().toLowerCase());
+        var message = new TrafficExceededAlert(definition.serviceName(), cause);
 
         if (definition.alertDefinitions() == null) {
             return;
