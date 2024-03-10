@@ -9,10 +9,8 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 public interface IRegistrationService {
-    Mono<ServiceTopicDefinitionBoundary> registerService(MessageBoundary message);
-
-    Mono<Void> registerService(String serviceName, List<AlertDefinitionBoundary> alertDefinitionBoundary);
-
+    Flux<ServiceTopicDefinitionBoundary> registerServices(MessageBoundary message, List<AlertDefinitionBoundary> alertDefinitions);
+    
     Flux<ServiceTopicDefinitionBoundary> getAllRegistrations(MessageBoundary message);
 
     Mono<Void> deleteAll();

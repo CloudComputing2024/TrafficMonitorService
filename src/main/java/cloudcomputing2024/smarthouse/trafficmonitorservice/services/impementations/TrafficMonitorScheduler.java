@@ -14,15 +14,15 @@ import java.time.Duration;
 
 @Component
 public class TrafficMonitorScheduler implements CommandLineRunner {
-    private static final Duration TrafficMonitorInterval = Duration.ofMinutes(1);
+    private static final Duration TrafficMonitorInterval = Duration.ofSeconds(20);
 
-    private final IServiceTopicMessageCounterService IServiceTopicMessageCounterService;
+    private final IServiceTopicMessageCounterService serviceTopicMessageCounterService;
     private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
 
     private final IServiceTrafficNotificationService notificationService;
 
     public TrafficMonitorScheduler(IServiceTopicMessageCounterService IServiceTopicMessageCounterService, ServiceTopicDefinitionRepository serviceTopicDefinitionRepository, IServiceTrafficNotificationService notificationService) {
-        this.IServiceTopicMessageCounterService = IServiceTopicMessageCounterService;
+        this.serviceTopicMessageCounterService = IServiceTopicMessageCounterService;
         this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
         this.notificationService = notificationService;
     }
@@ -31,20 +31,20 @@ public class TrafficMonitorScheduler implements CommandLineRunner {
     public void run(String... args) {
         Flux.interval(TrafficMonitorInterval)
                 .flatMap(interval -> monitorTraffic())
+                .thenMany(serviceTopicMessageCounterService.resetCounters())
+                .then()
                 .subscribe();
     }
 
-    private Mono<Void> monitorTraffic() {
+    private Flux<Void> monitorTraffic() {
         return serviceTopicDefinitionRepository
                 .findAll()
                 .filterWhen(this::isServiceTrafficExceeded)
-                .flatMap(definition -> notificationService.sendTrafficExceededNotifications(definition.serviceName(), TrafficExceededCause.Count))
-                .thenMany(IServiceTopicMessageCounterService.resetCounters())
-                .then();
+                .flatMap(definition -> notificationService.sendTrafficExceededNotifications(definition, TrafficExceededCause.Count));
     }
 
     private Mono<Boolean> isServiceTrafficExceeded(ServiceTopicDefinitionEntity definition) {
-        return IServiceTopicMessageCounterService
+        return serviceTopicMessageCounterService
                 .getCounter(definition.serviceName())
                 .map(counter -> counter > definition.maxRequestsPerMinute());
     }

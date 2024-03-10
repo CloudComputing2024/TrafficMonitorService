@@ -1,37 +1,36 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementations;
 
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.MessageBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.IMessageSizeValidator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 @Component
 public class MessageSizeValidator implements IMessageSizeValidator {
-    @Override
-    public boolean IsSizeValid(MessageBoundary messageBoundary) {
-        return validateSize(calculateSize(messageBoundary));
+    private final Log logger = LogFactory.getLog(MessageSizeValidator.class);
+    private final ObjectMapper objectMapper;
+
+    public MessageSizeValidator(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
-    private final int MAX_SIZE_MESSAGES = 100;
+    @Override
+    public boolean isSizeValid(MessageBoundary messageBoundary, ServiceTopicDefinitionEntity serviceTopicDefinition) {
+        var messageSize = calculateSize(messageBoundary);
+        return messageSize <= serviceTopicDefinition.maxRequestSizeIntBytes();
+    }
 
     public int calculateSize(MessageBoundary message) {
         try {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-            objectOutputStream.writeObject(message);
-            objectOutputStream.flush();
-
-            byte[] bytes = byteArrayOutputStream.toByteArray(); // Get the byte array and calculate its length
-            return bytes.length;
+            return objectMapper.writeValueAsBytes(message).length;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while calculating message size", e);
             return -1;
         }
-    }
-    public boolean validateSize(int currentSize) {
-        return currentSize < MAX_SIZE_MESSAGES;
     }
 }

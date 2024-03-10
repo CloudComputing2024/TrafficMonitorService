@@ -1,9 +1,9 @@
 package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementations;
 
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.AlertDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicDefinitionRepository;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.AlertDefinitionBoundary;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.ExternalReferenceBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.MessageBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.ServiceTopicDefinitionBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.IRegistrationService;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -23,36 +24,23 @@ public class RegistrationService implements IRegistrationService {
     }
 
     @Override
-    public Mono<ServiceTopicDefinitionBoundary> registerService(MessageBoundary message) {
-        if (message == null){
-            return Mono.empty();
-        }
-        ExternalReferenceBoundary[] externalReferences = message.getExternalReferences();
-        String serviceName = "";
-        for (ExternalReferenceBoundary externalReference : externalReferences) {
-            if ("serviceName".equals(externalReference.getService())) {
-                serviceName = externalReference.getExternalServiceId();
-                break;
-            }
-        }
-        if (serviceName.isEmpty()){
-            return Mono.empty();
-        }
-        //TODO handle alertDefinitions, missing in boundary
-        ServiceTopicDefinitionEntity serviceTopicDefinition = new ServiceTopicDefinitionEntity(serviceName,
-                (Integer) message.getMessageDetails().get("maxRequestsPerMinute"),
-                (Integer) message.getMessageDetails().get("maxRequestSizeIntBytes"),
-                null
-                );
+    public Flux<ServiceTopicDefinitionBoundary> registerServices(MessageBoundary message, List<AlertDefinitionBoundary> alertDefinitions) {
+        var maxRequestsPerMinute = (Integer) message.getMessageDetails().get("maxRequestsPerMinute");
+        var maxRequestSizeIntBytes = (Integer) message.getMessageDetails().get("maxRequestSizeIntBytes");
 
-        Mono<ServiceTopicDefinitionEntity> insertedEntityMono = this.registrationRepository.insert(serviceTopicDefinition);
+        var alertEntities = alertDefinitions
+                .stream()
+                .map(AlertDefinitionEntity::new)
+                .toList();
 
-        return insertedEntityMono.map(this::mapToBoundary);
-    }
+        var serviceEntities = Arrays
+                .stream(message.getExternalReferences())
+                .map(reference -> new ServiceTopicDefinitionEntity(reference.getService(), maxRequestsPerMinute, maxRequestSizeIntBytes, alertEntities))
+                .toList();
 
-    @Override
-    public Mono<Void> registerService(String serviceName, List<AlertDefinitionBoundary> alertDefinitionBoundary) {
-        return null;
+        return registrationRepository
+                .insert(serviceEntities)
+                .map(this::mapToBoundary);
     }
 
     @Override
@@ -71,13 +59,15 @@ public class RegistrationService implements IRegistrationService {
     private ServiceTopicDefinitionBoundary mapToBoundary(ServiceTopicDefinitionEntity entity) {
         List<AlertDefinitionBoundary> alertDefinitionBoundaries = Collections.emptyList();
         var alerts = entity.alertDefinitions();
-        if (alerts != null){
+
+        if (alerts != null) {
             alertDefinitionBoundaries = alerts
                     .stream()
                     .map(alertEntity -> new AlertDefinitionBoundary(alertEntity.notificationType(), alertEntity.parameters()))
                     .toList();
 
         }
+
         return new ServiceTopicDefinitionBoundary(entity.serviceName(),
                 entity.maxRequestsPerMinute(),
                 entity.maxRequestSizeIntBytes(),

@@ -3,7 +3,6 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementati
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.AlertDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededAlert;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.NotificationStrategy;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -12,33 +11,35 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class KafkaTopicNotificationStrategy implements NotificationStrategy {
-    private static final String TopicParameter = "topic";
     private final Logger logger = LoggerFactory.getLogger(KafkaTopicNotificationStrategy.class);
+    private static final String TopicParameter = "topic";
+    private static final String MessageParameter = "message";
     private final KafkaTemplate<String, String> publisher;
-    private final ObjectMapper objectMapper;
 
-    public KafkaTopicNotificationStrategy(KafkaTemplate<String, String> publisher, ObjectMapper objectMapper) {
+    public KafkaTopicNotificationStrategy(KafkaTemplate<String, String> publisher) {
         this.publisher = publisher;
-        this.objectMapper = objectMapper;
     }
 
     @Override
-    public Mono<Void> Notify(AlertDefinitionEntity alertDefinition, TrafficExceededAlert alert) {
-        var topic = alertDefinition.parameters().get(TopicParameter);
+    public Mono<Void> notify(AlertDefinitionEntity definition, TrafficExceededAlert alert) {
+        var topic = definition.parameters().get(TopicParameter);
 
         if (topic == null) {
             throw new IllegalArgumentException("Topic parameter is missing");
         }
 
-        return Mono.fromRunnable(() -> NotifyInternal(topic, alert));
+        return Mono.fromRunnable(() -> notifyInternal(definition, alert));
     }
 
-    private void NotifyInternal(String topic, TrafficExceededAlert alert) {
+    private void notifyInternal(AlertDefinitionEntity definition, TrafficExceededAlert alert) {
         try {
-            var message = objectMapper.writeValueAsString(alert);
+            var topic = definition.parameters().get(TopicParameter).toString();
+            var message = definition.parameters().get(MessageParameter).toString();
+            
+            logger.info("Sending notification to topic: {} because of alert: {}", topic, alert);
             publisher.send(topic, message);
         } catch (Exception e) {
-            logger.error("Failed to send notification to topic: {}", topic);
+            logger.error("Failed to send notification", e);
         }
     }
 }

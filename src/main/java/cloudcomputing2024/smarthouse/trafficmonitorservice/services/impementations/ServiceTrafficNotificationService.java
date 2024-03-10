@@ -3,7 +3,7 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementati
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededAlert;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededCause;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.AlertDefinitionEntity;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.ServiceTopicDefinitionRepository;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.IServiceTrafficNotificationService;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.INotificationStrategyProvider;
 import org.slf4j.Logger;
@@ -16,33 +16,27 @@ import reactor.core.publisher.Mono;
 public class ServiceTrafficNotificationService implements IServiceTrafficNotificationService {
     private final Logger logger = LoggerFactory.getLogger(ServiceTrafficNotificationService.class);
     private final INotificationStrategyProvider notificationStrategyProvider;
-    private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;
-    public ServiceTrafficNotificationService(INotificationStrategyProvider notificationStrategyProvider, ServiceTopicDefinitionRepository serviceTopicDefinitionRepository) {
+
+    public ServiceTrafficNotificationService(INotificationStrategyProvider notificationStrategyProvider) {
         this.notificationStrategyProvider = notificationStrategyProvider;
-        this.serviceTopicDefinitionRepository = serviceTopicDefinitionRepository;
     }
 
     @Override
-    public Flux<Void> sendTrafficExceededNotifications(String serviceName, TrafficExceededCause cause) {
-        logger.warn("Traffic exceeded for service '{}' because of {}", serviceName, cause.name().toLowerCase());
-        var serviceTopicDefinition = serviceTopicDefinitionRepository.findByServiceName(serviceName);
+    public Mono<Void> sendTrafficExceededNotifications(ServiceTopicDefinitionEntity serviceTopicDefinition, TrafficExceededCause cause) {
+        logger.warn("Traffic exceeded for service '{}' because of {}", serviceTopicDefinition.serviceName(), cause.name().toLowerCase());
+        var message = new TrafficExceededAlert(serviceTopicDefinition.serviceName(), cause);
 
-        return serviceTopicDefinition.flatMap(topicDefinition -> {
-            var message = new TrafficExceededAlert(topicDefinition.serviceName(), cause);
+        if (serviceTopicDefinition.alertDefinitions() == null) {
+            return Mono.empty();
+        }
 
-            if (topicDefinition.alertDefinitions() == null) {
-                return Flux.empty();
-            }
-
-            return Flux
-                    .fromIterable(topicDefinition.alertDefinitions())
-                    .flatMap(alert -> sendAlertNotification(alert, message));
-
-        });
+        return Flux.fromIterable(serviceTopicDefinition.alertDefinitions())
+                .flatMap(alert -> sendAlertNotification(alert, message))
+                .then();
     }
 
     private Mono<Void> sendAlertNotification(AlertDefinitionEntity alertDefinition, TrafficExceededAlert alertMessage) {
         var notification = notificationStrategyProvider.getStrategy(alertDefinition.notificationType());
-        return notification.Notify(alertDefinition, alertMessage);
+        return notification.notify(alertDefinition, alertMessage);
     }
 }

@@ -26,7 +26,8 @@ public class IServiceTopicMessageRedisCounterService implements IServiceTopicMes
 
         return cache
                 .opsForValue()
-                .increment(getCounterKey(serviceName));
+                .increment(getCounterKey(serviceName))
+                .switchIfEmpty(Mono.just(0L));
     }
 
     @Override

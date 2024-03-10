@@ -4,5 +4,5 @@ import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.Notif
 
 import java.util.Map;
 
-public record AlertDefinitionBoundary(NotificationType notificationType, Map<String, String> parameters) {
+public record AlertDefinitionBoundary(NotificationType notificationType, Map<String, Object> parameters) {
 }

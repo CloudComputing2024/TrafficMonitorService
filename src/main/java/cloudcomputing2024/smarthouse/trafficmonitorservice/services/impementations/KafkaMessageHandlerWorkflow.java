@@ -2,32 +2,26 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.services.impementati
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.NotificationType;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededCause;
+import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.IServiceTopicMessageCounterService;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.AlertDefinitionBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.MessageBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.*;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class KafkaMessageHandlerWorkflow implements IKafkaMessageHandlerWorkflow {
-    private ServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer;
-    private IMonitoredMessagesFilterer monitoredMessagesFilterer;
-    private IRegistrationService registrationService;
-    private IMessageSizeValidator messageSizeValidator;
-    private IServiceTrafficNotificationService notificationService;
-    private IServiceTopicMessageCounterService messageCounterService;
+    private final ServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer;
+    private final IMonitoredMessagesFilterer monitoredMessagesFilterer;
+    private final IRegistrationService registrationService;
+    private final IMessageSizeValidator messageSizeValidator;
+    private final IServiceTrafficNotificationService notificationService;
+    private final IServiceTopicMessageCounterService messageCounterService;
 
-    public KafkaMessageHandlerWorkflow(ServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer,
-                                       IMonitoredMessagesFilterer monitoredMessagesFilterer,
-                                       IRegistrationService registrationService,
-                                       IMessageSizeValidator messageSizeValidator,
-                                       IServiceTrafficNotificationService notificationService,
-                                       IServiceTopicMessageCounterService messageCounterService) {
+    public KafkaMessageHandlerWorkflow(ServiceTopicDefinitionFilterer serviceTopicDefinitionFilterer, IMonitoredMessagesFilterer monitoredMessagesFilterer, IRegistrationService registrationService, IMessageSizeValidator messageSizeValidator, IServiceTrafficNotificationService notificationService, IServiceTopicMessageCounterService messageCounterService) {
         this.serviceTopicDefinitionFilterer = serviceTopicDefinitionFilterer;
         this.monitoredMessagesFilterer = monitoredMessagesFilterer;
         this.registrationService = registrationService;
@@ -38,39 +32,34 @@ public class KafkaMessageHandlerWorkflow implements IKafkaMessageHandlerWorkflow
 
     @Override
     public void HandleMessage(MessageBoundary messageBoundary) {
-        var serviceName = Arrays.stream(messageBoundary
-                        .getExternalReferences())
-                .toList()
-                .get(0)
-                .getService();
-
-        if(serviceTopicDefinitionFilterer.IsMessageIsRegistrationMessage(messageBoundary)){
-
-            List<AlertDefinitionBoundary> alertDefinitionBoundary = RetrieveAlertDefinitions(messageBoundary);
-            registrationService.registerService(messageBoundary);
-            return;
-        };
-
-        if(monitoredMessagesFilterer.IsMessageInMonitoring(messageBoundary)){
-            if(!messageSizeValidator.IsSizeValid(messageBoundary)){
-                notificationService.sendTrafficExceededNotifications(serviceName, TrafficExceededCause.Size);
-            }
-
-            messageCounterService.incrementCounter(serviceName);
+        if (serviceTopicDefinitionFilterer.IsMessageIsRegistrationMessage(messageBoundary)) {
+            var alertDefinitionBoundary = retrieveAlertDefinitions(messageBoundary);
+            registrationService.registerServices(messageBoundary, alertDefinitionBoundary).then().block();
+        } else {
+            monitoredMessagesFilterer.getMonitoredServices(messageBoundary)
+                    .flatMap(service -> handleMonitoredMessage(messageBoundary, service))
+                    .then()
+                    .block();
         }
 
     }
 
-    private List<AlertDefinitionBoundary> RetrieveAlertDefinitions(MessageBoundary messageBoundary){
-        List<Map<String, Object>> alertDefinitions =
-                (List<Map<String, Object>>) messageBoundary.getMessageDetails().get("alertDefinitions");
+    private Mono<Void> handleMonitoredMessage(MessageBoundary messageBoundary, ServiceTopicDefinitionEntity serviceTopicDefinition) {
+        return messageCounterService.incrementCounter(serviceTopicDefinition.serviceName())
+                .filter(counter -> !messageSizeValidator.isSizeValid(messageBoundary, serviceTopicDefinition))
+                .flatMap(counter -> notificationService.sendTrafficExceededNotifications(serviceTopicDefinition, TrafficExceededCause.Size));
+    }
 
-        List<AlertDefinitionBoundary> alertDefinitionBoundary = new ArrayList<>();
-        for (Map<String, Object> alertDefinition : alertDefinitions) {
-            String notificationType = (String) alertDefinition.get("notificationType");
-            Map<String, String> parameters = (Map<String, String>) alertDefinition.get("details");
+    private List<AlertDefinitionBoundary> retrieveAlertDefinitions(MessageBoundary messageBoundary) {
+        var alertDefinitions = (List<Map<String, Object>>) messageBoundary.getMessageDetails().get("alertDefinitions");
+        var alertDefinitionBoundary = new ArrayList<AlertDefinitionBoundary>();
 
-            AlertDefinitionBoundary boundary = new AlertDefinitionBoundary(NotificationType.valueOf(notificationType), parameters);
+        for (var alertDefinitionMap : alertDefinitions) {
+            var notificationTypeValue = alertDefinitionMap.get("notificationType").toString();
+            var details = (Map<String, Object>) alertDefinitionMap.get("details");
+            var notificationType = NotificationType.valueOf(notificationTypeValue);
+
+            var boundary = new AlertDefinitionBoundary(notificationType, details);
             alertDefinitionBoundary.add(boundary);
         }
         return alertDefinitionBoundary;

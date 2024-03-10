@@ -2,9 +2,8 @@ package cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstraction
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.datamodel.TrafficExceededCause;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.domin.entities.ServiceTopicDefinitionEntity;
-import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.MessageBoundary;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 public interface IServiceTrafficNotificationService {
-    Flux<Void> sendTrafficExceededNotifications(String serviceName, TrafficExceededCause cause);
+    Mono<Void> sendTrafficExceededNotifications(ServiceTopicDefinitionEntity serviceTopicDefinition, TrafficExceededCause cause);
 }

@@ -7,22 +7,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Mono;
 
 @Service
 public class ApiRequestNotificationStrategy implements NotificationStrategy {
     private final Logger logger = LoggerFactory.getLogger(ApiRequestNotificationStrategy.class);
-    private final ObjectMapper objectMapper;
     //private final RestTemplate restTemplate;
 
-    public ApiRequestNotificationStrategy(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-        //.restTemplate = restTemplate;
+    public ApiRequestNotificationStrategy(ObjectMapper objectMapper) {//, RestTemplate restTemplate) {
+        //this.restTemplate = restTemplate;
     }
 
     @Override
-    public Mono<Void> Notify(AlertDefinitionEntity alertDefinition, TrafficExceededAlert alert) {
+    public Mono<Void> notify(AlertDefinitionEntity alertDefinition, TrafficExceededAlert alert) {
         return Mono.empty();
 //        try {
 //            HttpHeaders headers = new org.springframework.http.HttpHeaders();
