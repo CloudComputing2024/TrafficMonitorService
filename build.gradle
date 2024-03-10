@@ -4,9 +4,10 @@ plugins {
 	id 'org.springframework.boot' version '3.2.3'
 	id 'io.spring.dependency-management' version '1.1.4'
 }
+apply plugin: 'application'
 
 group = 'cloudcomputing2024.smart-house'
-version = '0.0.1-SNAPSHOT'
+version = '0.0.1-READY-FOR-INTEGRATION'
 
 java {
 	sourceCompatibility = '17'
@@ -41,7 +42,7 @@ dependencyManagement {
 }
 
 application {
-	mainClassName = 'com.baeldung.spring.kafka.KafkaApplication'
+	mainClassName = 'cloudcomputing2024.smarthouse.trafficmonitorservice.TrafficMonitorServiceApplication'
 }
 
 tasks.named('test') {

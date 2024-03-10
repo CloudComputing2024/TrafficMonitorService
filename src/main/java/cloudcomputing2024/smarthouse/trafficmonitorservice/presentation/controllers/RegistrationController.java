@@ -37,10 +37,9 @@ public class RegistrationController {
 
     @GetMapping(
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public Flux<ServiceTopicDefinitionBoundary> getAllRegistrations(
-            @RequestBody MessageBoundary message) {
+    public Flux<ServiceTopicDefinitionBoundary> getAllRegistrations() {
         return this.registrationService
-                .getAllRegistrations(message)
+                .getAllRegistrations()
                 .log();
     }
 

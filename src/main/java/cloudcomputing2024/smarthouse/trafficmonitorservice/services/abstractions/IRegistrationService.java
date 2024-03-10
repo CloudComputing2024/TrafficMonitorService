@@ -11,7 +11,7 @@ import java.util.List;
 public interface IRegistrationService {
     Flux<ServiceTopicDefinitionBoundary> registerServices(MessageBoundary message, List<AlertDefinitionBoundary> alertDefinitions);
     
-    Flux<ServiceTopicDefinitionBoundary> getAllRegistrations(MessageBoundary message);
+    Flux<ServiceTopicDefinitionBoundary> getAllRegistrations();
 
     Mono<Void> deleteAll();
 }

@@ -44,7 +44,7 @@ public class RegistrationService implements IRegistrationService {
     }
 
     @Override
-    public Flux<ServiceTopicDefinitionBoundary> getAllRegistrations(MessageBoundary message) {
+    public Flux<ServiceTopicDefinitionBoundary> getAllRegistrations() {
         return this.registrationRepository
                 .findAll()
                 .map(this::mapToBoundary);
