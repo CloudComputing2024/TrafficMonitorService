@@ -14,7 +14,7 @@ import java.time.Duration;
 
 @Component
 public class TrafficMonitorScheduler implements CommandLineRunner {
-    private static final Duration TrafficMonitorInterval = Duration.ofSeconds(20);
+    private static final Duration TrafficMonitorInterval = Duration.ofSeconds(60);
 
     private final IServiceTopicMessageCounterService serviceTopicMessageCounterService;
     private final ServiceTopicDefinitionRepository serviceTopicDefinitionRepository;

@@ -1,4 +1,4 @@
-package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.Kafka;
+package cloudcomputing2024.smarthouse.trafficmonitorservice.infrastructure.kafka;
 
 import cloudcomputing2024.smarthouse.trafficmonitorservice.presentation.boundaries.MessageBoundary;
 import cloudcomputing2024.smarthouse.trafficmonitorservice.services.abstractions.IKafkaMessageHandlerWorkflow;
